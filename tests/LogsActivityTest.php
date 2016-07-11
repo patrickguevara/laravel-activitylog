@@ -75,6 +75,25 @@ class LogsActivityTest extends TestCase
         $this->assertCount(2, $activities);
     }
 
+    /** @test */
+    public function it_can_log_activity_to_log_named_in_the_model()
+    {
+        $articleClass = new class extends Article {
+            use LogsActivity;
+
+            public function getLogNameToUse()
+            {
+                return 'custom_log';
+            }
+        };
+
+        $article = new $articleClass();
+        $article->name = 'my name';
+        $article->save();
+
+        $this->assertEquals($article->id, Activity::inLog('custom_log')->first()->subject->id);
+        $this->assertCount(1, Activity::inLog('custom_log')->get());
+    }
 
     protected function createArticle(): Article
     {
@@ -84,7 +103,4 @@ class LogsActivityTest extends TestCase
 
         return $article;
     }
-
-
-
 }
